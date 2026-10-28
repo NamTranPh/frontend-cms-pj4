@@ -1,9 +1,49 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3004/api/v1';
+import { env } from '../config/env';
+
 interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;
 }
 
-export const fetchClient = async (endpoint: string, options: RequestOptions = {}) => {
+// Biến lưu trữ Promise làm mới Token duy nhất để tránh race condition khi nhiều request 401 cùng lúc
+let refreshTokenPromise: Promise<string> | null = null;
+
+async function refreshAdminToken(): Promise<string> {
+  if (!refreshTokenPromise) {
+    refreshTokenPromise = (async () => {
+      try {
+        const response = await fetch(`${env.apiUrl}/admin/auth/refresh-token`, {
+          method: 'POST',
+          credentials: 'include', // Gửi cookie admin_refresh_token
+        });
+
+        if (!response.ok) {
+          throw new Error('Refresh token thất bại');
+        }
+
+        const text = await response.text();
+        const json = text ? JSON.parse(text) : {};
+        const newAccessToken = json.data?.accessToken || json.accessToken;
+
+        if (!newAccessToken) {
+          throw new Error('Không nhận được access token mới');
+        }
+
+        localStorage.setItem('accessToken', newAccessToken);
+        return newAccessToken;
+      } catch (err) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        throw err;
+      } finally {
+        refreshTokenPromise = null;
+      }
+    })();
+  }
+  return refreshTokenPromise;
+}
+
+export const fetchClient = async <T = any>(endpoint: string, options: RequestOptions = {}): Promise<T> => {
   const { requiresAuth = true, headers, ...customConfig } = options;
   const token = localStorage.getItem('accessToken');
 
@@ -24,26 +64,15 @@ export const fetchClient = async (endpoint: string, options: RequestOptions = {}
     ...customConfig,
   };
 
-  let response = await fetch(`${BASE_URL}${endpoint}`, config);
+  let response = await fetch(`${env.apiUrl}${endpoint}`, config);
 
   // Xử lý tự động Refresh Token khi gặp lỗi 401 (Hết hạn Token)
   if (response.status === 401 && requiresAuth) {
-    const refreshRes = await fetch(`${BASE_URL}/auth/refresh-token`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-
-    if (refreshRes.ok) {
-      const { accessToken } = await refreshRes.json();
-      localStorage.setItem('accessToken', accessToken);
-      
-      // Thử lại request ban đầu với Access Token mới
-      (config.headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`;
-      response = await fetch(`${BASE_URL}${endpoint}`, config);
-    } else {
-      // Refresh token thất bại/hết hạn -> Xóa token và yêu cầu đăng nhập lại
-      localStorage.removeItem('accessToken');
-      window.location.reload();
+    try {
+      const newAccessToken = await refreshAdminToken();
+      (config.headers as Record<string, string>)['Authorization'] = `Bearer ${newAccessToken}`;
+      response = await fetch(`${env.apiUrl}${endpoint}`, config);
+    } catch {
       throw new Error('Phiên đăng nhập đã hết hạn');
     }
   }
@@ -53,5 +82,18 @@ export const fetchClient = async (endpoint: string, options: RequestOptions = {}
     throw new Error(errorData.message || `Lỗi HTTP: ${response.status}`);
   }
 
-  return response.json();
+  const text = await response.text();
+  if (!text) {
+    return {} as T;
+  }
+
+  let result: any;
+  try {
+    result = JSON.parse(text);
+  } catch {
+    result = text;
+  }
+
+  // Nếu backend bọc dạng ApiResponse { data: ... }, trả về data hoặc toàn bộ result
+  return (result && typeof result === 'object' && result.data !== undefined ? result.data : result) as T;
 };

@@ -1,1 +1,48 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Font chữ chính thức */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Nền giao diện (Neo-Slate Cyberpunk) */
+  --color-admin-bg: #090d16;
+  --color-admin-card: #131c2e;
+  --color-admin-card-hover: #1b263e;
+  --color-admin-sidebar: #0c121e;
+  --color-admin-border: #1e293b;
+  --color-admin-border-glow: rgba(6, 182, 212, 0.35);
+
+  /* Điểm nhấn & Nút bấm */
+  --color-admin-primary: #06b6d4;
+  --color-admin-primary-hover: #22d3ee;
+  --color-admin-blue: #1d4ed8;
+  --color-admin-blue-hover: #2563eb;
+  --color-admin-purple: #a855f7;
+
+  /* Trạng thái */
+  --color-admin-success: #10b981;
+  --color-admin-warning: #f59e0b;
+  --color-admin-danger: #f43f5e;
+  --color-admin-info: #06b6d4;
+}
+
+/* Custom scrollbar mỏng phong cách công nghệ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #06b6d4;
+}
