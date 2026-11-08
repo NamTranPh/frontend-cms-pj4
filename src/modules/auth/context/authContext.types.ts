@@ -1,15 +1,12 @@
 import { createContext } from 'react';
-import type { AdminProfile, LoginRequest, UpdateProfileRequest } from '../types/auth.types';
+import type { LoginRequest, LoginResponse } from '../types/auth.types';
 
 export interface AuthContextType {
-  user: AdminProfile | null;
+  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: LoginRequest) => Promise<AdminProfile>;
+  login: (credentials: LoginRequest) => Promise<LoginResponse>;
   logout: () => Promise<void>;
-  refreshProfile: () => Promise<AdminProfile | null>;
-  updateProfile: (data: UpdateProfileRequest) => Promise<AdminProfile>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-

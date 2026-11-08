@@ -2,6 +2,7 @@ import React from 'react';
 import {
   LayoutDashboard,
   Film,
+  Tags,
   Video,
   Users,
   Crown,
@@ -25,6 +26,11 @@ export const SIDEBAR_NAV_ITEMS: NavItem[] = [
     title: 'Quản lý Phim',
     path: ROUTES.ADMIN.MOVIES,
     icon: Film,
+  },
+  {
+    title: 'Thể loại',
+    path: ROUTES.ADMIN.GENRES,
+    icon: Tags,
   },
   {
     title: 'Tập phim & Video',

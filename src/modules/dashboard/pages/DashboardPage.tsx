@@ -8,10 +8,10 @@ import {
   Clock,
 } from "lucide-react";
 
-import { useAuth } from "../../auth/hooks/useAuth";
+import { useProfile } from "../../profile/hooks/useProfile";
 
 export const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { profile: user } = useProfile();
   const accountName = user?.name || user?.email || "Admin Manager";
 
   // Dữ liệu mẫu cho biểu đồ cột đôi (Double Bar Chart - tương tự Ảnh 2)

@@ -3,14 +3,14 @@ import React, { useState } from 'react';
 export interface TooltipProps {
   content: string;
   children: React.ReactNode;
-  position?: 'right' | 'top' | 'bottom' | 'left';
+  position?: 'right' | 'top' | 'bottom' | 'left' | 'top-end' | 'bottom-end';
   disabled?: boolean;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
   content,
   children,
-  position = 'right',
+  position = 'bottom',
   disabled = false,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -20,10 +20,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
   }
 
   const positionStyles = {
-    right: 'left-full top-1/2 -translate-y-1/2 ml-3',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-3',
+    right: 'left-full top-1/2 -translate-y-1/2 ml-2.5',
+    left: 'right-full top-1/2 -translate-y-1/2 mr-2.5',
     top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
     bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
+    'top-end': 'bottom-full right-0 mb-2',
+    'bottom-end': 'top-full right-0 mt-2',
   }[position];
 
   return (
@@ -41,6 +43,21 @@ export const Tooltip: React.FC<TooltipProps> = ({
           {/* Mũi tên nhỏ chỉ vào icon */}
           {position === 'right' && (
             <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
+          )}
+          {position === 'left' && (
+            <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-slate-900" />
+          )}
+          {position === 'top' && (
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+          )}
+          {position === 'bottom' && (
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-900" />
+          )}
+          {position === 'top-end' && (
+            <div className="absolute top-full right-3 border-4 border-transparent border-t-slate-900" />
+          )}
+          {position === 'bottom-end' && (
+            <div className="absolute bottom-full right-3 border-4 border-transparent border-b-slate-900" />
           )}
         </div>
       )}

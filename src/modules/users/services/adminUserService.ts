@@ -3,7 +3,7 @@ import type { AdminUser, ToggleBanRequest, UserFilterParams } from '../types/use
 import type { PageResult } from '../../../types/common.types';
 
 /**
- * Module Users - Service kết nối API Quản trị Người dùng (Spring Boot UserController)
+ * Module Users - Service kết nối API Quản trị Người dùng (Spring Boot AdminUserController)
  *
  * Endpoints thực tế:
  * 1. Danh sách người dùng: GET /api/v1/admin/users?page=&limit=&search=
@@ -26,7 +26,7 @@ export const adminUserService = {
 
   // Khóa / Mở khóa tài khoản
   toggleBan: (id: string, data: ToggleBanRequest) =>
-    fetchClient<AdminUser>(`/admin/users/${id}/ban`, {
+    fetchClient<void>(`/admin/users/${id}/ban`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),

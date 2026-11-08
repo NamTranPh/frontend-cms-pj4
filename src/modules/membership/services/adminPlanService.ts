@@ -1,5 +1,10 @@
 import { fetchClient } from '../../../api/fetchClient';
-import type { MembershipPlan, CreatePlanRequest, UpdatePlanRequest, PlanFilterParams } from '../types/plan.types';
+import type {
+  MembershipPlan,
+  CreatePlanRequest,
+  UpdatePlanRequest,
+  PlanFilterParams,
+} from '../types/plan.types';
 import type { PageResult } from '../../../types/common.types';
 
 /**
@@ -14,12 +19,17 @@ export const adminPlanService = {
     if (params?.limit) query.append('limit', String(params.limit));
     if (params?.search) query.append('search', params.search);
     if (params?.isActive !== undefined) query.append('isActive', String(params.isActive));
+    if (params?.sortBy) query.append('sortBy', params.sortBy);
+    if (params?.sortDir) query.append('sortDir', params.sortDir);
     const queryString = query.toString();
-    return fetchClient<PageResult<MembershipPlan>>(`/admin/membership-plans${queryString ? `?${queryString}` : ''}`);
+    return fetchClient<PageResult<MembershipPlan>>(
+      `/admin/membership-plans${queryString ? `?${queryString}` : ''}`,
+    );
   },
 
   // Chi tiết gói VIP
-  getPlanById: (id: string) => fetchClient<MembershipPlan>(`/admin/membership-plans/${id}`),
+  getPlanById: (id: string) =>
+    fetchClient<MembershipPlan>(`/admin/membership-plans/${id}`),
 
   // Tạo mới gói VIP
   createPlan: (data: CreatePlanRequest) =>
@@ -35,9 +45,9 @@ export const adminPlanService = {
       body: JSON.stringify(data),
     }),
 
-  // Xóa gói VIP
+  // Xóa / Vô hiệu hóa gói VIP
   deletePlan: (id: string) =>
-    fetchClient<{ message: string }>(`/admin/membership-plans/${id}`, {
+    fetchClient<void>(`/admin/membership-plans/${id}`, {
       method: 'DELETE',
     }),
 };

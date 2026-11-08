@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { ROUTES } from "../../../config/routes.config";
+import { AvatarEditModal } from "../components/AvatarEditModal";
 import {
   User,
   Mail,
@@ -20,10 +22,12 @@ import {
   AlertCircle,
   RefreshCw,
   Image as ImageIcon,
+  Camera,
 } from "lucide-react";
-import { useAuth } from "../hooks/useAuth";
-import { authService } from "../services/authService";
-import type { AdminProfile, SessionResult, UpdateProfileRequest } from "../types/auth.types";
+import { useAuth } from "../../auth/hooks/useAuth";
+import { useProfile } from "../hooks/useProfile";
+import { profileService } from "../services/profileService";
+import type { AdminProfile, SessionResult, UpdateProfileRequest } from "../types/profile.types";
 import { useToast } from "../../../components/feedback";
 
 // ============================================================================
@@ -214,6 +218,8 @@ const GeneralProfileForm: React.FC<GeneralProfileFormProps> = ({ user, onUpdate 
 // ============================================================================
 const ChangePasswordForm: React.FC = () => {
   const toast = useToast();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -221,6 +227,7 @@ const ChangePasswordForm: React.FC = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,15 +247,27 @@ const ChangePasswordForm: React.FC = () => {
 
     setIsChanging(true);
     try {
-      await authService.changePassword({ oldPassword, newPassword });
-      toast.success("Đổi mật khẩu thành công! Mật khẩu mới đã được cập nhật.", "Thành công");
+      await profileService.changePassword({ oldPassword, newPassword });
+      setIsSuccess(true);
+      toast.success(
+        "Đổi mật khẩu thành công! Hệ thống sẽ chuyển hướng về trang đăng nhập sau 1.5 giây...",
+        "Thành công"
+      );
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
+
+      // Backend đã thu hồi toàn bộ refresh token và tăng tokenVersion
+      setTimeout(async () => {
+        try {
+          await logout();
+        } finally {
+          navigate(ROUTES.PUBLIC.LOGIN);
+        }
+      }, 1500);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Đổi mật khẩu thất bại";
       toast.error(msg, "Lỗi");
-    } finally {
       setIsChanging(false);
     }
   };
@@ -258,9 +277,6 @@ const ChangePasswordForm: React.FC = () => {
       <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 pb-4 mb-2 border-b border-slate-200 dark:border-slate-800">
         Đổi Mật Khẩu Đăng Nhập
       </h3>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-        Để bảo vệ an toàn cho tài khoản Quản trị, mật khẩu nên dài tối thiểu 6 ký tự và kết hợp giữa chữ cái, số và ký tự đặc biệt.
-      </p>
 
       <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
         {/* Mật khẩu cũ */}
@@ -277,13 +293,15 @@ const ChangePasswordForm: React.FC = () => {
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
               required
-              className="w-full pl-9 pr-10 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+              disabled={isChanging || isSuccess}
+              className="w-full pl-9 pr-10 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all disabled:opacity-50"
               placeholder="Nhập mật khẩu hiện tại..."
             />
             <button
               type="button"
               onClick={() => setShowOldPassword(!showOldPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              disabled={isChanging || isSuccess}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer disabled:opacity-50"
             >
               {showOldPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -305,13 +323,15 @@ const ChangePasswordForm: React.FC = () => {
               onChange={(e) => setNewPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full pl-9 pr-10 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+              disabled={isChanging || isSuccess}
+              className="w-full pl-9 pr-10 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all disabled:opacity-50"
               placeholder="Tối thiểu 6 ký tự..."
             />
             <button
               type="button"
               onClick={() => setShowNewPassword(!showNewPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              disabled={isChanging || isSuccess}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer disabled:opacity-50"
             >
               {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -335,13 +355,15 @@ const ChangePasswordForm: React.FC = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full pl-9 pr-10 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+              disabled={isChanging || isSuccess}
+              className="w-full pl-9 pr-10 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all disabled:opacity-50"
               placeholder="Nhập lại mật khẩu mới..."
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              disabled={isChanging || isSuccess}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer disabled:opacity-50"
             >
               {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -352,11 +374,11 @@ const ChangePasswordForm: React.FC = () => {
         <div className="pt-4 flex items-center gap-3 border-t border-slate-200 dark:border-slate-800">
           <button
             type="submit"
-            disabled={isChanging}
+            disabled={isChanging || isSuccess}
             className="px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 bg-[#002b80] hover:bg-[#00246b] text-white dark:bg-cyan-500 dark:hover:bg-cyan-400 dark:text-slate-950 transition-all shadow-md shadow-cyan-500/10 cursor-pointer disabled:opacity-50"
           >
             <KeyRound size={16} />
-            {isChanging ? "Đang xử lý..." : "Cập Nhật Mật Khẩu"}
+            {isSuccess ? "Đang chuyển hướng..." : isChanging ? "Đang xử lý..." : "Cập Nhật Mật Khẩu"}
           </button>
         </div>
       </form>
@@ -376,7 +398,7 @@ const SessionsTab: React.FC = () => {
   const fetchSessions = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await authService.getSessions();
+      const res = await profileService.getSessions();
       setSessions(Array.isArray(res) ? res : []);
     } catch {
       toast.error("Không thể tải danh sách phiên đăng nhập", "Lỗi");
@@ -387,7 +409,7 @@ const SessionsTab: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    authService
+    profileService
       .getSessions()
       .then((res) => {
         if (isMounted) setSessions(Array.isArray(res) ? res : []);
@@ -408,7 +430,7 @@ const SessionsTab: React.FC = () => {
 
   const handleRevokeSession = async (sessionId: string) => {
     try {
-      await authService.revokeSession(sessionId);
+      await profileService.revokeSession(sessionId);
       toast.success("Đã đăng xuất phiên thiết bị này", "Thành công");
       setSessions((prev) => prev.filter((s) => s.sessionId !== sessionId));
     } catch (err: unknown) {
@@ -420,7 +442,7 @@ const SessionsTab: React.FC = () => {
   const handleRevokeOtherSessions = async () => {
     setIsRevokingOther(true);
     try {
-      await authService.revokeOtherSessions();
+      await profileService.revokeOtherSessions();
       toast.success("Đã đăng xuất khỏi tất cả các thiết bị khác!", "Thành công");
       await fetchSessions();
     } catch (err: unknown) {
@@ -559,8 +581,10 @@ const SessionsTab: React.FC = () => {
 // MAIN PAGE: ADMIN PROFILE
 // ============================================================================
 export const AdminProfilePage: React.FC = () => {
-  const { user, updateProfile } = useAuth();
+  const { profile: user, refreshProfile, updateProfile } = useProfile();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const toast = useToast();
 
   // Tab hiện tại: 'general' | 'password' | 'sessions'
   const activeTab = searchParams.get("tab") || "general";
@@ -571,6 +595,18 @@ export const AdminProfilePage: React.FC = () => {
 
   const handleUpdate = async (data: UpdateProfileRequest) => {
     await updateProfile(data);
+  };
+
+  const handleSaveAvatar = async (file: File) => {
+    await profileService.uploadAvatar(file);
+    await refreshProfile();
+    toast.success("Cập nhật ảnh đại diện thành công!", "Thành công");
+  };
+
+  const handleDeleteAvatar = async () => {
+    await profileService.deleteAvatar();
+    await refreshProfile();
+    toast.success("Đã gỡ ảnh đại diện thành công!", "Thành công");
   };
 
   const formattedDate = user?.createdAt
@@ -600,8 +636,8 @@ export const AdminProfilePage: React.FC = () => {
         {/* Cột Trái: Thẻ Tóm Tắt Profile */}
         <div className="lg:col-span-1 space-y-6">
           <div className="p-6 rounded-2xl bg-white dark:bg-[#131c2e] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center text-center">
-            {/* Avatar lớn */}
-            <div className="relative mb-4">
+            {/* Avatar lớn kèm nút icon máy ảnh tinh gọn ở góc */}
+            <div className="relative mb-3 group">
               <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 font-black text-3xl shadow-lg shadow-cyan-500/20 overflow-hidden">
                 {user?.profileUrl ? (
                   <img
@@ -613,12 +649,24 @@ export const AdminProfilePage: React.FC = () => {
                   <User size={44} />
                 )}
               </div>
+              {/* Chấm trạng thái hoạt động ở góc trên */}
               <span
-                className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-[#131c2e]"
+                className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-[#131c2e]"
                 title="Đang hoạt động"
               />
+
+              {/* Nút icon Máy ảnh ở góc dưới bên phải avatar */}
+              <button
+                type="button"
+                onClick={() => setIsAvatarModalOpen(true)}
+                className="absolute -bottom-1.5 -right-1.5 p-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-cyan-400 border border-slate-200 dark:border-slate-700 hover:border-cyan-500 hover:bg-cyan-50 dark:hover:bg-slate-700 shadow-md shadow-black/10 transition-all cursor-pointer hover:scale-110"
+                title="Chỉnh sửa ảnh đại diện"
+              >
+                <Camera size={15} />
+              </button>
             </div>
 
+            {/* Tên Quản trị viên và Email ngay bên dưới avatar */}
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
               {user?.name || "Administrator"}
             </h2>
@@ -719,6 +767,15 @@ export const AdminProfilePage: React.FC = () => {
           {activeTab === "sessions" && <SessionsTab />}
         </div>
       </div>
+
+      {/* Modal Chỉnh sửa & Căn chỉnh Avatar */}
+      <AvatarEditModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        currentAvatarUrl={user?.profileUrl}
+        onSaveAvatar={handleSaveAvatar}
+        onDeleteAvatar={handleDeleteAvatar}
+      />
     </div>
   );
 };

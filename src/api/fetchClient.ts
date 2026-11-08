@@ -47,8 +47,9 @@ export const fetchClient = async <T = any>(endpoint: string, options: RequestOpt
   const { requiresAuth = true, headers, ...customConfig } = options;
   const token = localStorage.getItem('accessToken');
 
+  const isFormData = customConfig.body instanceof FormData;
   const defaultHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(headers as Record<string, string>),
   };
 
@@ -94,6 +95,20 @@ export const fetchClient = async <T = any>(endpoint: string, options: RequestOpt
     result = text;
   }
 
-  // Nếu backend bọc dạng ApiResponse { data: ... }, trả về data hoặc toàn bộ result
-  return (result && typeof result === 'object' && result.data !== undefined ? result.data : result) as T;
+  // Nếu backend bọc dạng ApiResponse { data: ..., pagination: ... }, trả về dữ liệu chuẩn
+  if (result && typeof result === 'object' && result.data !== undefined) {
+    if (result.pagination) {
+      return {
+        items: result.data,
+        totalItems: result.pagination.totalItems,
+        page: result.pagination.page,
+        size: result.pagination.limit,
+        totalPages: result.pagination.totalPages,
+        pagination: result.pagination,
+      } as unknown as T;
+    }
+    return result.data as T;
+  }
+
+  return result as T;
 };

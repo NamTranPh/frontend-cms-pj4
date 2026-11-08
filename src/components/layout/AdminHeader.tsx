@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menu, LogOut, User, Bell, ChevronDown, KeyRound } from "lucide-react";
 import { ROUTES } from "../../config/routes.config";
 import { useAuth } from "../../modules/auth/hooks/useAuth";
+import { useProfile } from "../../modules/profile/hooks/useProfile";
 import { useToast } from "../feedback";
 import { ThemeToggle } from "../ui/ThemeToggle";
 
@@ -16,7 +17,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const toast = useToast();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
+  const { profile: user } = useProfile();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);

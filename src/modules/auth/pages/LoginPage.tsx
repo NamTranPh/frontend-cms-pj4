@@ -38,9 +38,9 @@ export const LoginPage: React.FC = () => {
       setTimeout(() => {
         navigate(ROUTES.ADMIN.DASHBOARD);
       }, 1000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       const msg =
-        err.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.";
+        err instanceof Error ? err.message : "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.";
       setErrorMsg(msg);
       toast.error(msg, "Error:");
     } finally {

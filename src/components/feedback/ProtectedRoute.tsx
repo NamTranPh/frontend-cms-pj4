@@ -2,17 +2,19 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { ROUTES } from '../../config/routes.config';
 import { useAuth } from '../../modules/auth/hooks/useAuth';
+import { useProfile } from '../../modules/profile/hooks/useProfile';
 
 interface ProtectedRouteProps {
   requiredRole?: 'ADMIN' | 'USER';
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole }) => {
-  const { isAuthenticated, user, isLoading } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { profile, isLoading: isProfileLoading } = useProfile();
   const token = localStorage.getItem('accessToken');
 
-  // Đang đồng bộ phiên đăng nhập
-  if (isLoading && token) {
+  // Đang đồng bộ phiên đăng nhập hoặc hồ sơ
+  if ((isAuthLoading || isProfileLoading) && token) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#090d16] text-[#002b80] dark:text-cyan-400">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-current border-t-transparent"></div>
@@ -26,7 +28,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole }) 
   }
 
   // Kiểm tra quyền vai trò (Role-based access control)
-  if (requiredRole && user && user.role !== requiredRole) {
+  if (requiredRole && profile && profile.role !== requiredRole) {
     return <Navigate to={ROUTES.PUBLIC.LOGIN} replace />;
   }
 

@@ -6,6 +6,7 @@ export const ROUTES = {
     ROOT: '/admin',
     DASHBOARD: '/admin/dashboard',
     MOVIES: '/admin/movies',
+    GENRES: '/admin/genres',
     EPISODES: '/admin/episodes',
     USERS: '/admin/users',
     MEMBERSHIP: '/admin/membership',

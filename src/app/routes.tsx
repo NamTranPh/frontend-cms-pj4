@@ -4,11 +4,12 @@ import { ROUTES } from '../config/routes.config';
 import { LoginPage } from '../modules/auth/pages/LoginPage';
 import { DashboardPage } from '../modules/dashboard/pages/DashboardPage';
 import { AdminMoviePage } from '../modules/movies/pages/AdminMoviePage';
+import { AdminGenrePage } from '../modules/genres/pages/AdminGenrePage';
 import { AdminEpisodePage } from '../modules/episodes/pages/AdminEpisodePage';
 import { AdminUserPage } from '../modules/users/pages/AdminUserPage';
 import { AdminPlanPage } from '../modules/membership/pages/AdminPlanPage';
 import { AdminPaymentPage } from '../modules/payments/pages/AdminPaymentPage';
-import { AdminProfilePage } from '../modules/auth/pages/AdminProfilePage';
+import { AdminProfilePage } from '../modules/profile/pages/AdminProfilePage';
 import { AdminLayout } from '../components/layout/AdminLayout';
 import { ProtectedRoute } from '../components/feedback/ProtectedRoute';
 
@@ -32,6 +33,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path={ROUTES.ADMIN.MOVIES}
             element={<AdminMoviePage />}
+          />
+          <Route
+            path={ROUTES.ADMIN.GENRES}
+            element={<AdminGenrePage />}
           />
           <Route
             path={ROUTES.ADMIN.EPISODES}
