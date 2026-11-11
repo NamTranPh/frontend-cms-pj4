@@ -28,6 +28,7 @@
 24. [Quy tắc Đặt tên (Naming Conventions)](#24-quy-tắc-đặt-tên-naming-conventions)
 25. [CẤM TUYỆT ĐỐI TRONG CMS ADMIN](#25-cấm-tuyệt-đối-trong-cms-admin)
 26. [Checklist Tự kiểm tra trước khi hoàn thành](#26-checklist-tự-kiểm-tra-trước-khi-hoàn-thành)
+27. [Quy chuẩn Thiết kế Đáp ứng (Responsive Design & 4 Breakpoints)](#27-quy-chuẩn-thiết-kế-đáp-ứng-responsive-design--4-breakpoints)
 
 ---
 
@@ -503,3 +504,52 @@ Trước khi hoàn thành bất kỳ chức năng CMS nào, phải xác nhận:
 - [ ] Các hành động xóa / khóa có hộp thoại xác nhận `ConfirmDialog` chưa?
 - [ ] Đã kiểm tra hiển thị responsive bảng dữ liệu trên desktop và tablet chưa?
 - [ ] Không có cảnh báo linter (`oxlint` hoặc `tsc -b`) và không còn kiểu `any`?
+
+---
+
+## 27. Quy chuẩn Thiết kế Đáp ứng (Responsive Design & 4 Breakpoints)
+
+Mọi màn hình và component trong hệ thống CMS Admin bắt buộc phải được thiết kế và kiểm thử đáp ứng trên **4 nhóm thiết bị tiêu chuẩn**, sử dụng các utility class của Tailwind CSS (tuyệt đối không hardcode kích thước pixel cố định):
+
+### 27.1. Bảng 4 Nhóm Breakpoints Tiêu Chuẩn
+
+| Nhóm Thiết Bị           | Kích Thước Màn Hình | Tiền Tố Tailwind                 | Mục Tiêu Bố Cục CMS                                                                                                                                                                              |
+| :---------------------- | :------------------ | :------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Phone (Mobile)**   | `< 640px`           | `base` (không có tiền tố)        | Layout 1 cột (`grid-cols-1`). Sidebar dạng **Off-canvas Drawer** trượt đè lên trên, có lớp phủ mờ Backdrop. Table cuộn ngang `overflow-x-auto`. Padding nhỏ gọn `p-4`.                           |
+| **2. Tablet**           | `640px` – `1023px`  | `sm:` (640px) & `md:` (768px)    | Bố cục 1–2 cột (`sm:grid-cols-2`). Sidebar **vẫn là Off-canvas Drawer** nổi đè với lớp phủ mờ (tuyệt đối không đẩy layout). Bảng dữ liệu và thanh lọc mở rộng vừa vặn. Padding `p-5` hoặc `p-6`. |
+| **3. Laptop**           | `1024px` – `1279px` | `lg:` (1024px)                   | Chuyển sang bố cục CMS tiêu chuẩn. Sidebar cố định bên trái, đẩy lề nội dung chính (`lg:ml-64` hoặc `lg:ml-20`). Grid 2–3 cột.                                                                   |
+| **4. PC / Desktop Lớn** | `≥ 1280px`          | `xl:` (1280px) & `2xl:` (1536px) | Hiển thị trọn vẹn nhất. Sidebar mở rộng mặc định, Grid 3–4 cột (`xl:grid-cols-4`). Padding thông thoáng `xl:p-8`.                                                                                |
+
+### 27.2. Quy Chuẩn Cơ Chế Bố Cục Layout & Sidebar (AdminLayout & AdminSidebar)
+
+1. **Trên màn hình Tablet & Mobile (`< lg` / `< 1024px`):**
+   - **Nội dung chính (`main` container):** Luôn chiếm trọn 100% chiều rộng (`ml-0`, không có `margin-left` cố định). Tuyệt đối **không được đẩy nội dung** sang bên phải khi mở Sidebar vì sẽ làm vỡ giao diện.
+   - **Sidebar (Off-canvas Drawer):**
+     - Mặc định ẩn ra khỏi màn hình bằng class `-translate-x-full lg:translate-x-0`.
+     - Khi mở: Trượt mượt mà vào màn hình bằng class `translate-x-0`, nằm nổi đè lên trên toàn bộ nội dung với `z-50`.
+   - **Lớp phủ mờ (Backdrop Blur Overlay - BẮT BUỘC):**
+     - Khi Sidebar mở trên Tablet/Mobile, bắt buộc kích hoạt lớp phủ mờ toàn màn hình:
+       `fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 transition-opacity`
+     - Người dùng bấm vào lớp phủ mờ hoặc bấm vào bất kỳ liên kết chuyển trang (`NavLink`) nào trong Sidebar thì hệ thống **tự động đóng Sidebar**.
+2. **Trên màn hình Laptop & PC (`≥ 1024px` / `lg:` trở lên):**
+   - Lớp phủ mờ tự động ẩn (`hidden lg:hidden`).
+   - Sidebar cố định bên trái, điều khiển thu gọn (`w-20`) hoặc mở rộng (`w-64`).
+   - Nội dung chính đẩy lề mượt mà theo trạng thái: `lg:ml-64` hoặc `lg:ml-20`.
+
+### 27.3. Quy Tắc Kỹ Thuật Viết Code Responsive Bắt Buộc
+
+1. **Hạn chế tối đa hardcode kích thước pixel:**
+   - ❌ **CẤM:** Dùng kích thước cứng như `w-[600px]`, `w-[350px]`, `ml-[256px]` cho container hoặc layout chính.
+   - ✅ **ĐÚNG:** Dùng các class linh hoạt: `w-full`, `max-w-md`, `max-w-xl`, `max-w-7xl`, `flex-1`, responsive grid.
+2. **Responsive Grid & Flexbox:**
+   - Luôn áp dụng tư duy Mobile-First:
+     ```tsx
+     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+     ```
+3. **Responsive Padding & Spacing:**
+   - Vùng làm việc chính: `p-4 sm:p-6 lg:p-8`.
+   - Thanh bộ lọc & tìm kiếm: `flex flex-col sm:flex-row sm:items-center justify-between gap-3`.
+4. **Bảng Dữ Liệu (Table Responsive):**
+   - Tất cả bảng dữ liệu phải được bọc trong container có class `w-full overflow-x-auto` để đảm bảo có thể cuộn ngang nhẹ nhàng trên Tablet và Mobile mà không làm biến dạng cấu trúc trang.
+5. **Nút Thao Tác (Actions):**
+   - Trên mobile: Ưu tiên hiển thị icon hoặc thu gọn chữ dài bằng `hidden sm:inline`. Giữ diện tích chạm (touch target) tối thiểu 36x36px để người dùng dễ thao tác bằng ngón tay.
