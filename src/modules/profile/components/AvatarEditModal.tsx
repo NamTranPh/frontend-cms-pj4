@@ -11,11 +11,11 @@ import {
   ZoomOut,
   Trash2,
   Check,
-  User as UserIcon,
 } from 'lucide-react';
 import { Cropper, CircleStencil, type CropperRef } from 'react-advanced-cropper';
 import 'react-advanced-cropper/dist/style.css';
 import { useToast } from '../../../components/feedback';
+import { Avatar } from '../../../components/ui/Avatar';
 
 export interface AvatarEditModalProps {
   isOpen: boolean;
@@ -328,19 +328,12 @@ export const AvatarEditModal: React.FC<AvatarEditModalProps> = ({
           ) : (
             /* TRƯỜNG HỢP 3: Chưa chọn ảnh mới, hiển thị ảnh hiện tại và nút tải ảnh */
             <div className="flex flex-col items-center justify-center py-6 text-center space-y-4">
-              <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-cyan-500 to-gray-400 p-0.5 shadow-lg shadow-cyan-500/20">
-                <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 flex items-center justify-center">
-                  {currentAvatarUrl ? (
-                    <img
-                      src={currentAvatarUrl}
-                      alt="Avatar hiện tại"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <UserIcon size={52} className="text-slate-400" />
-                  )}
-                </div>
-              </div>
+              <Avatar
+                src={currentAvatarUrl}
+                size="2xl"
+                shape="circle"
+                className="w-28 h-28 text-3xl shadow-lg shadow-cyan-500/10"
+              />
 
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">

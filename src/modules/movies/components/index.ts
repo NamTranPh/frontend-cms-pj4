@@ -1,8 +1,8 @@
-/**
- * Module Movies - Components
- * Nơi chứa các components dùng riêng cho Module Phim:
- * - MovieTable.tsx (Bảng danh sách phim)
- * - MovieFormModal.tsx (Modal thêm mới / chỉnh sửa phim)
- * - MovieDetailDrawer.tsx (Drawer xem chi tiết thông tin phim)
- */
-export {};
+export * from './MovieFilterBar';
+export * from './MovieFilterModal';
+export * from './MovieTable';
+export * from './MovieFormModal';
+export * from './MovieDetailDrawer';
+export * from './GenreMultiSelect';
+export * from './MovieActorManager';
+export * from './MovieStatisticsCards';

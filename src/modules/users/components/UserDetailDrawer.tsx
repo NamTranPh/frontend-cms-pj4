@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  User as UserIcon,
   Mail,
   Phone,
   MapPin,
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Drawer } from '../../../components/ui/Drawer';
 import { Badge } from '../../../components/ui/Badge';
+import { Avatar } from '../../../components/ui/Avatar';
 import type { AdminUser } from '../types/user.types';
 
 export interface UserDetailDrawerProps {
@@ -112,19 +112,13 @@ export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
         {/* Khối Header Profile */}
         <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-slate-50/80 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80">
           <div className="relative mb-3">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-md shadow-cyan-500/15">
-              <div className="w-full h-full rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center text-white font-bold text-2xl">
-                {user.profileUrl ? (
-                  <img
-                    src={user.profileUrl}
-                    alt={user.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  user.name.charAt(0).toUpperCase() || <UserIcon size={32} />
-                )}
-              </div>
-            </div>
+            <Avatar
+              src={user.profileUrl}
+              name={user.name}
+              size="2xl"
+              shape="rounded"
+              className="shadow-md shadow-cyan-500/15"
+            />
             <span
               className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-[#131c2e] ${
                 user.isBanned ? 'bg-rose-500' : 'bg-emerald-500'

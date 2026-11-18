@@ -25,7 +25,6 @@ export const authService = {
       console.warn("Lỗi khi gọi API đăng xuất backend:", error);
     } finally {
       localStorage.removeItem("accessToken");
-      localStorage.removeItem("admin_profile");
     }
   },
 };

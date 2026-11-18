@@ -5,7 +5,6 @@ import {
   Unlock,
   Shield,
   Crown,
-  User as UserIcon,
 } from 'lucide-react';
 import {
   Table,
@@ -18,6 +17,7 @@ import {
   TableSkeleton,
 } from '../../../components/ui/Table';
 import { Badge } from '../../../components/ui/Badge';
+import { Avatar } from '../../../components/ui/Avatar';
 import type { AdminUser } from '../types/user.types';
 
 export interface UserTableProps {
@@ -73,19 +73,12 @@ export const UserTable: React.FC<UserTableProps> = ({
                 {/* Người dùng: Avatar + Tên + Email */}
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shrink-0 shadow-sm shadow-cyan-500/10">
-                      <div className="w-full h-full rounded-[10px] overflow-hidden bg-slate-900 flex items-center justify-center text-white font-bold text-sm">
-                        {user.profileUrl ? (
-                          <img
-                            src={user.profileUrl}
-                            alt={user.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          user.name.charAt(0).toUpperCase() || <UserIcon size={16} />
-                        )}
-                      </div>
-                    </div>
+                    <Avatar
+                      src={user.profileUrl}
+                      name={user.name}
+                      size="md"
+                      shape="rounded"
+                    />
 
                     <div className="space-y-0.5 min-w-0">
                       <div className="flex items-center gap-1.5">

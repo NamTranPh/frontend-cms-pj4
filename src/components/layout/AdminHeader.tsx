@@ -6,6 +6,9 @@ import { useAuth } from "../../modules/auth/hooks/useAuth";
 import { useProfile } from "../../modules/profile/hooks/useProfile";
 import { useToast } from "../feedback";
 import { ThemeToggle } from "../ui/ThemeToggle";
+import { Avatar } from "../ui/Avatar";
+import { NotificationDropdown } from "../../modules/notifications/components/NotificationDropdown";
+import { notificationService } from "../../modules/notifications/services/notificationService";
 
 interface AdminHeaderProps {
   isSidebarCollapsed: boolean;
@@ -23,7 +26,24 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Đóng dropdown khi click ra ngoài hoặc bấm Escape
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnreadCount = React.useCallback(async () => {
+    try {
+      const count = await notificationService.getUnreadCount();
+      setUnreadCount(count);
+    } catch {
+      setUnreadCount(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 60000);
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -88,11 +108,32 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         {/* Nút chuyển đổi Theme Sáng / Tối */}
         <ThemeToggle />
 
-        {/* Nút thông báo */}
-        <button className="relative p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors cursor-pointer">
-          <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-        </button>
+        {/* Nút thông báo kèm Dropdown */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              setIsNotificationOpen((prev) => !prev);
+              setIsDropdownOpen(false);
+            }}
+            className="relative p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+            title="Thông báo hệ thống"
+          >
+            <Bell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-cyan-500 text-slate-950 font-bold text-[10px] flex items-center justify-center shadow-md shadow-cyan-500/30 animate-pulse">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          <NotificationDropdown
+            isOpen={isNotificationOpen}
+            onClose={() => setIsNotificationOpen(false)}
+            unreadCount={unreadCount}
+            onUnreadCountChange={fetchUnreadCount}
+          />
+        </div>
 
         {/* Khung thông tin cá nhân & User Dropdown */}
         <div
@@ -105,17 +146,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent hover:border-slate-200 dark:hover:border-slate-700/60 transition-all cursor-pointer group"
             aria-expanded={isDropdownOpen}
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 font-bold shadow-md shadow-cyan-500/20 overflow-hidden flex-shrink-0">
-              {user?.profileUrl ? (
-                <img
-                  src={user.profileUrl}
-                  alt={user.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User size={18} />
-              )}
-            </div>
+            <Avatar
+              src={user?.profileUrl}
+              name={user?.name || "Administrator"}
+              size="md"
+              shape="rounded"
+              className="shadow-md shadow-cyan-500/10"
+            />
 
             <div className="hidden md:flex flex-col text-left">
               <span className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">

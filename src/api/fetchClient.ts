@@ -4,8 +4,18 @@ interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;
 }
 
-// Biến lưu trữ Promise làm mới Token duy nhất để tránh race condition khi nhiều request 401 cùng lúc
+// Lưu trữ Promise làm mới Token duy nhất để tránh race condition khi nhiều request 401 cùng lúc
 let refreshTokenPromise: Promise<string> | null = null;
+let isRedirecting = false;
+
+export function handleSessionExpired() {
+  if (isRedirecting) return;
+  isRedirecting = true;
+  localStorage.removeItem('accessToken');
+  if (window.location.pathname !== '/login') {
+    window.location.replace('/login');
+  }
+}
 
 async function refreshAdminToken(): Promise<string> {
   if (!refreshTokenPromise) {
@@ -31,9 +41,7 @@ async function refreshAdminToken(): Promise<string> {
         localStorage.setItem('accessToken', newAccessToken);
         return newAccessToken;
       } catch (err) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        handleSessionExpired();
         throw err;
       } finally {
         refreshTokenPromise = null;
@@ -67,18 +75,27 @@ export const fetchClient = async <T = any>(endpoint: string, options: RequestOpt
 
   let response = await fetch(`${env.apiUrl}${endpoint}`, config);
 
-  // Xử lý tự động Refresh Token khi gặp lỗi 401 (Hết hạn Token)
+  // Xử lý tự động Refresh Token khi gặp lỗi 401 (Hết hạn Token hoặc Bị thu hồi phiên)
   if (response.status === 401 && requiresAuth) {
     try {
       const newAccessToken = await refreshAdminToken();
       (config.headers as Record<string, string>)['Authorization'] = `Bearer ${newAccessToken}`;
       response = await fetch(`${env.apiUrl}${endpoint}`, config);
     } catch {
+      handleSessionExpired();
       throw new Error('Phiên đăng nhập đã hết hạn');
     }
   }
 
+  if (response.status === 403 && requiresAuth) {
+    handleSessionExpired();
+    throw new Error('Bạn không có quyền truy cập hoặc phiên đã bị thu hồi');
+  }
+
   if (!response.ok) {
+    if ((response.status === 401 || response.status === 403) && requiresAuth) {
+      handleSessionExpired();
+    }
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.message || `Lỗi HTTP: ${response.status}`);
   }
@@ -95,7 +112,6 @@ export const fetchClient = async <T = any>(endpoint: string, options: RequestOpt
     result = text;
   }
 
-  // Nếu backend bọc dạng ApiResponse { data: ..., pagination: ... }, trả về dữ liệu chuẩn
   if (result && typeof result === 'object' && result.data !== undefined) {
     if (result.pagination) {
       return {

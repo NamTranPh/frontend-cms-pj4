@@ -9,3 +9,5 @@ export * from './Table';
 export * from './Pagination';
 export * from './Modal';
 export * from './Drawer';
+export * from './Avatar';
+export * from './ImageCropModal';

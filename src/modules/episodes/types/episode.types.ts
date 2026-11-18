@@ -28,3 +28,21 @@ export interface EpisodeFilterParams {
   page?: number;
   limit?: number;
 }
+
+export interface CreateEpisodeRequest {
+  episodeNumber: number;
+  title?: string;
+  description?: string;
+  duration?: number;
+  airDate?: string;
+  thumbnailUrl?: string;
+}
+
+export interface UpdateEpisodeRequest {
+  episodeNumber?: number;
+  title?: string;
+  description?: string;
+  duration?: number;
+  airDate?: string;
+  thumbnailUrl?: string;
+}

@@ -55,10 +55,17 @@ export const profileService = {
 
   // 6. Danh sách các phiên thiết bị đăng nhập (GET /api/v1/admin/account/sessions)
   getSessions: async (): Promise<SessionResult[]> => {
-    return fetchClient<SessionResult[]>("/admin/account/sessions", {
-      method: "GET",
+    const res = await fetchClient<
+      SessionResult[] | { items: SessionResult[] } | { data: SessionResult[] }
+    >('/admin/account/sessions', {
+      method: 'GET',
       requiresAuth: true,
     });
+    if (Array.isArray(res)) return res;
+    if (res && 'items' in res && Array.isArray(res.items)) return res.items;
+    if (res && 'data' in res && Array.isArray((res as any).data))
+      return (res as any).data;
+    return [];
   },
 
   // 7. Đăng xuất một phiên thiết bị cụ thể (DELETE /api/v1/admin/account/sessions/{sessionId})

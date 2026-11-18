@@ -6,9 +6,10 @@ import { DashboardPage } from '../modules/dashboard/pages/DashboardPage';
 import { AdminMoviePage } from '../modules/movies/pages/AdminMoviePage';
 import { AdminGenrePage } from '../modules/genres/pages/AdminGenrePage';
 import { AdminEpisodePage } from '../modules/episodes/pages/AdminEpisodePage';
+import { AdminActorPage } from '../modules/actors/pages/AdminActorPage';
 import { AdminUserPage } from '../modules/users/pages/AdminUserPage';
 import { AdminPlanPage } from '../modules/membership/pages/AdminPlanPage';
-import { AdminPaymentPage } from '../modules/payments/pages/AdminPaymentPage';
+import { AdminPaymentPage, AdminRefundPage } from '../modules/payments';
 import { AdminProfilePage } from '../modules/profile/pages/AdminProfilePage';
 import { AdminLayout } from '../components/layout/AdminLayout';
 import { ProtectedRoute } from '../components/feedback/ProtectedRoute';
@@ -43,6 +44,10 @@ export const AppRoutes: React.FC = () => {
             element={<AdminEpisodePage />}
           />
           <Route
+            path={ROUTES.ADMIN.ACTORS}
+            element={<AdminActorPage />}
+          />
+          <Route
             path={ROUTES.ADMIN.USERS}
             element={<AdminUserPage />}
           />
@@ -53,6 +58,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path={ROUTES.ADMIN.PAYMENTS}
             element={<AdminPaymentPage />}
+          />
+          <Route
+            path={ROUTES.ADMIN.REFUNDS}
+            element={<AdminRefundPage />}
           />
           <Route
             path={ROUTES.ADMIN.PROFILE}

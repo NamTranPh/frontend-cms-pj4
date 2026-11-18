@@ -1,24 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { profileService } from '../services/profileService';
+import { handleSessionExpired } from '../../../api/fetchClient';
 import type { AdminProfile, UpdateProfileRequest } from '../types/profile.types';
 import { ProfileContext } from './profileContext.types';
 
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
-  const [profile, setProfile] = useState<AdminProfile | null>(() => {
-    try {
-      const saved = localStorage.getItem('admin_profile');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [isLoading, setIsLoading] = useState<boolean>(() => {
-    return Boolean(isAuthenticated && !localStorage.getItem('admin_profile'));
-  });
+  // Hồ sơ người dùng lưu hoàn toàn trên RAM (In-Memory State), không lưu vào localStorage để bảo mật
+  const [profile, setProfile] = useState<AdminProfile | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(Boolean(isAuthenticated));
 
   // Tự động điều chỉnh state khi trạng thái đăng nhập thay đổi (render-time adjustment)
   const [prevAuth, setPrevAuth] = useState(isAuthenticated);
@@ -27,7 +19,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!isAuthenticated) {
       setProfile(null);
       setIsLoading(false);
-      localStorage.removeItem('admin_profile');
     }
   }
 
@@ -36,19 +27,22 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     let isMounted = true;
 
     if (!isAuthenticated) {
+      setIsLoading(false);
       return;
     }
 
+    setIsLoading(true);
     profileService
       .getProfile()
       .then((res) => {
         if (isMounted) {
           setProfile(res);
-          localStorage.setItem('admin_profile', JSON.stringify(res));
         }
       })
       .catch((error) => {
         console.warn('Không thể tải thông tin admin profile:', error);
+        setProfile(null);
+        handleSessionExpired();
       })
       .finally(() => {
         if (isMounted) {
@@ -70,7 +64,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const res = await profileService.getProfile();
       setProfile(res);
-      localStorage.setItem('admin_profile', JSON.stringify(res));
       return res;
     } catch (error) {
       console.warn('Không thể làm mới profile admin:', error);
@@ -82,7 +75,6 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
     async (data: UpdateProfileRequest): Promise<AdminProfile> => {
       const updated = await profileService.updateProfile(data);
       setProfile(updated);
-      localStorage.setItem('admin_profile', JSON.stringify(updated));
       return updated;
     },
     [],
